@@ -8,14 +8,15 @@ from tqdm import tqdm
 import logging
 from datetime import datetime
 
-from nodes.record.logger_config import setup_logger
+# from nodes.record.logging_config import setup_logging
+from src.utils.common_utils import find_middle_json_files, save_markdown
 
-# 获取logger实例
-config = {
-    'script_name': 'generate_footnote_md',
-    "console_enabled": False,
-}
-logger, config_info = setup_logger(config)
+# 获取logging实例
+# config = {
+#     'script_name': 'generate_footnote_md',
+#     "console_enabled": False,
+# }
+# logging, config_info = setup_logging(config)
 
 class TextProcessor:
     @staticmethod
@@ -95,7 +96,7 @@ class FootnoteProcessor:
     
     def collect_footnotes(self):
         """收集脚注"""
-        logger.info("\n收集脚注...")
+        logging.info("\n收集脚注...")
         footnote_tasks = []
         self.page_footnote_counts = {}  # 重置计数器
         
@@ -131,11 +132,11 @@ class FootnoteProcessor:
                             'position': f"{page_idx}_{y_pos}",
                             'page': page_idx
                         })
-                        logger.info(f"找到脚注 [第{page_idx + 1}页]: {text}")
+                        logging.info(f"找到脚注 [第{page_idx + 1}页]: {text}")
                     pbar.update(1)
         
         # 按页码和位置排序脚注
-        logger.info("\n整理脚注...")
+        logging.info("\n整理脚注...")
         self.footnotes.sort(key=lambda x: (x['page'], float(x['position'].split('_')[1])))
     
     def build_footnote_md(self):
@@ -165,7 +166,7 @@ class FootnoteProcessor:
     
     def process(self):
         """处理整个文档"""
-        logger.info("开始处理脚注...")
+        logging.info("开始处理脚注...")
         
         # 收集脚注
         self.collect_footnotes()
@@ -174,25 +175,15 @@ class FootnoteProcessor:
         markdown_text = self.build_footnote_md()
         
         # 输出统计信息
-        logger.info("\n脚注处理统计:")
-        logger.info(f"总脚注数: {self.stats['total_footnotes']}")
-        logger.info(f"有效脚注数: {self.stats['inserted_footnotes']}")
-        logger.info(f"被排除脚注数: {self.stats['total_footnotes'] - self.stats['inserted_footnotes']}")
+        logging.info("\n脚注处理统计:")
+        logging.info(f"总脚注数: {self.stats['total_footnotes']}")
+        logging.info(f"有效脚注数: {self.stats['inserted_footnotes']}")
+        logging.info(f"被排除脚注数: {self.stats['total_footnotes'] - self.stats['inserted_footnotes']}")
         
-        logger.info("\n处理完成")
+        logging.info("\n处理完成")
         
         return markdown_text
 
-def find_matching_files(directory='.'):
-    """查找目录下的middle.json文件"""
-    directory = Path(directory)
-    json_files = []
-    
-    # 查找所有middle.json文件
-    for json_file in directory.glob('*middle.json'):
-        json_files.append(json_file)
-    
-    return json_files
 
 def main():
     import json
@@ -209,7 +200,7 @@ def main():
     
     # 查找匹配的文件
     with console.status("[bold green]查找匹配的文件...[/bold green]"):
-        json_files = find_matching_files(work_dir)
+        json_files = find_middle_json_files(work_dir)
     
     if not json_files:
         console.print(f"\n[red]在目录 {work_dir} 中没有找到middle.json文件[/red]")

@@ -2,29 +2,9 @@ import json
 from pathlib import Path
 from rich.console import Console
 from rich.prompt import Prompt
-from magic_pdf.dict2md.ocr_mkcontent import ocr_mk_mm_markdown_with_para_and_pagination# layout/middle.json转换为markdown关键函数
-
-def find_middle_json_files(directory='.'):
-    """查找目录下的middle.json文件"""
-    directory = Path(directory)
-    json_files = []
-    
-    # 查找所有middle.json文件
-    for json_file in directory.glob('*middle.json'):
-        json_files.append(json_file)
-    
-    return json_files
-
-def save_markdown(markdown_content, output_path):
-    """保存Markdown内容到文件"""
-    with open(output_path, 'w', encoding='utf-8') as f:
-        for page in markdown_content:
-            # 添加页码标记
-            f.write(f'```page\n第{page["page_no"] + 1}页\n```\n\n')
-            # 写入页面内容
-            f.write(page['md_content'])
-            # 添加分隔符
-            f.write('\n\n' + '---' + '\n\n')
+from magic_pdf.dict2md.ocr_mkcontent import ocr_mk_mm_markdown_with_para_and_pagination # layout/middle.json转换为markdown关键函数
+# 从 utils 导入共用函数
+from src.utils.common_utils import find_middle_json_files, save_markdown
 
 def main():
     console = Console()
@@ -36,7 +16,7 @@ def main():
     
     # 查找匹配的文件
     with console.status("[bold green]查找middle.json文件...[/bold green]"):
-        json_files = find_middle_json_files(work_dir)
+        json_files = find_middle_json_files(work_dir) # 使用导入的函数
     
     if not json_files:
         console.print(f"\n[red]在目录 {work_dir} 中没有找到middle.json文件[/red]")
@@ -80,7 +60,7 @@ def main():
         
         # 保存Markdown文件
         with console.status("[bold green]保存Markdown文件...[/bold green]"):
-            save_markdown(markdown_content, output_path)
+            save_markdown(markdown_content, output_path) # 使用导入的函数
         
         console.print(f"\n[bold green]✓ 处理完成！[/bold green]")
         console.print(f"输出文件：[cyan]{output_path}[/cyan]")
@@ -99,4 +79,4 @@ def main():
         console.print(traceback.format_exc())
 
 if __name__ == '__main__':
-    main() 
+    main()
