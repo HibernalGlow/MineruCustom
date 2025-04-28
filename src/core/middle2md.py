@@ -48,11 +48,17 @@ def main():
         # 获取PDF信息
         pdf_info_dict = json_data['pdf_info']
         
+        # --- 确定图片基础路径 ---
+        # 图片位于 middle.json 文件所在目录下的 images 子目录中
+        images_base_path = json_file.parent / "images"
+        # 将路径转换为 file:/// URL
+        images_base_url = images_base_path.as_uri()
+        
         # 转换为Markdown
         with console.status("[bold green]转换为Markdown...[/bold green]"):
             markdown_content = ocr_mk_mm_markdown_with_para_and_pagination(
                 pdf_info_dict,
-                img_buket_path=str(json_file.parent)
+                img_buket_path=images_base_url # 使用 file:/// URL 作为基础路径
             )
         
         # 生成输出文件路径
