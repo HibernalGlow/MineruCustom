@@ -10,14 +10,13 @@ from difflib import SequenceMatcher
 import logging
 from datetime import datetime
 
-from nodes.record.logger_config import setup_logger
 
-# 获取logger实例
-config = {
-    'script_name': 'mineru_footnotes',
-    "console_enabled": False,
-}
-logger, config_info = setup_logger(config)
+# 获取logging实例
+# config = {
+#     'script_name': 'mineru_footnotes',
+#     "console_enabled": False,
+# }
+# logger, config_info = setup_logging(config)
 
 # ================= 文本处理模块 =================
 
@@ -339,7 +338,7 @@ class FootnoteProcessor:
         return details    
     def preprocess_pages(self):
         """预处理页面信息"""
-        logger.info("预处理页面信息...")
+        logging.info("预处理页面信息...")
         total_pages = len(self.json_data['pdf_info'])
         
         # 初始化变量
@@ -383,7 +382,7 @@ class FootnoteProcessor:
                                 last_block = block
                                 last_text = block_text
                                 max_y = block_bottom
-                                logger.info(f"更新第{page_idx + 1}页的最后块: 类型={block['type']}, y={max_y}")
+                                logging.info(f"更新第{page_idx + 1}页的最后块: 类型={block['type']}, y={max_y}")
                     
                     if last_block:
                         self.page_contexts[page_idx] = {
@@ -391,7 +390,7 @@ class FootnoteProcessor:
                             'bbox': last_block['bbox'],
                             'type': last_block['type']
                         }
-                        logger.info(f"找到第{page_idx + 1}页的最后块: 类型={last_block['type']}, 文本={last_text[:50]}...")
+                        logging.info(f"找到第{page_idx + 1}页的最后块: 类型={last_block['type']}, 文本={last_text[:50]}...")
                 pbar.update(1)
         
         return total_pages, unmatched_pages, matched_points
@@ -399,7 +398,7 @@ class FootnoteProcessor:
     def collect_footnotes(self):
         """收集脚注"""
 
-        logger.info("\n收集脚注...")
+        logging.info("\n收集脚注...")
         footnote_tasks = []
         self.page_footnote_counts = {}  # 重置计数器
         
@@ -461,20 +460,20 @@ class FootnoteProcessor:
                             'context': closest_context if closest_context else '',
                             'page': page_idx
                         })
-                        logger.info(f"找到脚注 [第{page_idx + 1}页]: {text}")
+                        logging.info(f"找到脚注 [第{page_idx + 1}页]: {text}")
                         if closest_context:
-                            logger.info(f"上下文: {closest_context[:100]}...")
+                            logging.info(f"上下文: {closest_context[:100]}...")
                         else:
-                            logger.warning(f"未找到上下文 [第{page_idx + 1}页]")
+                            logging.warning(f"未找到上下文 [第{page_idx + 1}页]")
                     pbar.update(1)
         
         # 按页码和位置排序脚注
-        logger.info("\n整理脚注...")
+        logging.info("\n整理脚注...")
         self.footnotes.sort(key=lambda x: (x['page'], float(x['position'].split('_')[1])))
     
     def process_pages(self, total_pages, unmatched_pages, matched_points):
         """处理页面插入点"""
-        logger.info("\n查找页码标记插入点...")
+        logging.info("\n查找页码标记插入点...")
         
         # 收集所有插入点
         insert_points = []  # [(position, mark_text), ...]
@@ -514,21 +513,21 @@ class FootnoteProcessor:
                     insert_point = self.text_processor.find_insertion_point(self.official_md, block_text)
                     if insert_point != -1:
                         used_block = block_text
-                        logger.info(f"在第{current_page + 1}页使用最后一个文本块匹配成功")
+                        logging.info(f"在第{current_page + 1}页使用最后一个文本块匹配成功")
                     # 如果最后一个文本块匹配失败，尝试倒数第二个
                     elif len(page_blocks) > 1:
                         block_text, _ = page_blocks[1]
                         insert_point = self.text_processor.find_insertion_point(self.official_md, block_text)
                         if insert_point != -1:
                             used_block = block_text
-                            logger.info(f"在第{current_page + 1}页使用倒数第二个文本块匹配成功")
+                            logging.info(f"在第{current_page + 1}页使用倒数第二个文本块匹配成功")
                         else:
                             # 如果倒数第二个也失败，继续尝试其他块
                             for i, (block_text, _) in enumerate(page_blocks[2:], 3):
                                 insert_point = self.text_processor.find_insertion_point(self.official_md, block_text)
                                 if insert_point != -1:
                                     used_block = block_text
-                                    logger.info(f"在第{current_page + 1}页使用第{i}个文本块匹配成功")
+                                    logging.info(f"在第{current_page + 1}页使用第{i}个文本块匹配成功")
                                     break
                 
                 if insert_point != -1:
@@ -541,8 +540,8 @@ class FootnoteProcessor:
                         footnote_marks = []
                         
                         # 添加详细输出
-                        logger.info(f"\n--- 正在处理第{current_page + 1}页脚注 ---")
-                        logger.info(f"该页共有 {self.page_footnote_counts[current_page]} 个脚注")
+                        logging.info(f"\n--- 正在处理第{current_page + 1}页脚注 ---")
+                        logging.info(f"该页共有 {self.page_footnote_counts[current_page]} 个脚注")
                         
                         # 添加统计信息
                         inserted_count = 0
@@ -551,15 +550,15 @@ class FootnoteProcessor:
                             footnote_marks.append(f'\n```footnote\n{footnote["text"]}\n```\n')
                             self.stats['matched_footnotes'] += 1
                             inserted_count += 1
-                            logger.info(f"[{inserted_count}/{self.page_footnote_counts[current_page]}] 插入脚注: " + 
+                            logging.info(f"[{inserted_count}/{self.page_footnote_counts[current_page]}] 插入脚注: " + 
                                        (f"{footnote['text'][:50]}..." if len(footnote['text']) > 50 else f"{footnote['text']}"))
                         
                         # 添加详细日志
                         if inserted_count > 0:
                             success_rate = inserted_count / self.page_footnote_counts[current_page] * 100 if self.page_footnote_counts[current_page] > 0 else 0
-                            logger.info(f"第{current_page + 1}页脚注处理完成: 成功插入 {inserted_count}/{self.page_footnote_counts[current_page]} 个脚注 (成功率: {success_rate:.1f}%)")
+                            logging.info(f"第{current_page + 1}页脚注处理完成: 成功插入 {inserted_count}/{self.page_footnote_counts[current_page]} 个脚注 (成功率: {success_rate:.1f}%)")
                         else:
-                            logger.warning(f"第{current_page + 1}页未插入任何脚注")
+                            logging.warning(f"第{current_page + 1}页未插入任何脚注")
                         
                         # 将脚注和页码标记组合
                         mark_text = ''.join(footnote_marks) + page_mark
@@ -569,11 +568,11 @@ class FootnoteProcessor:
                     insert_points.append((insert_point, mark_text))
                     processed_pages.add(current_page)
                     matched_points[current_page] = insert_point  # 记录匹配页面的插入点
-                    logger.info(f"找到第{current_page + 1}页的插入点: {insert_point}, 使用文本: {used_block[:50]}...")
+                    logging.info(f"找到第{current_page + 1}页的插入点: {insert_point}, 使用文本: {used_block[:50]}...")
                 else:
                     # 记录未匹配的页面
                     unmatched_pages.add(current_page)
-                    logger.warning(f"无法找到第{current_page + 1}页的匹配位置")
+                    logging.warning(f"无法找到第{current_page + 1}页的匹配位置")
             
             current_page += 1
         
@@ -584,7 +583,7 @@ class FootnoteProcessor:
         insert_points = []
         
         if unmatched_pages:
-            logger.info("\n处理未匹配页面...")
+            logging.info("\n处理未匹配页面...")
             unmatched_pages = sorted(unmatched_pages, reverse=True)  # 降序排序
             
             for page_idx in unmatched_pages:
@@ -609,19 +608,19 @@ class FootnoteProcessor:
                     prev_point = matched_points[prev_page]
                     next_point = matched_points[next_page]
                     insert_point = prev_point + (next_point - prev_point) // 2
-                    logger.info(f"将第{page_idx + 1}页插入到第{prev_page + 1}页和第{next_page + 1}页之间")
+                    logging.info(f"将第{page_idx + 1}页插入到第{prev_page + 1}页和第{next_page + 1}页之间")
                 elif prev_page is not None:
                     # 在前一页之后插入
                     insert_point = matched_points[prev_page] + 1
-                    logger.info(f"将第{page_idx + 1}页插入到第{prev_page + 1}页之后")
+                    logging.info(f"将第{page_idx + 1}页插入到第{prev_page + 1}页之后")
                 elif next_page is not None:
                     # 在后一页之前插入
                     insert_point = matched_points[next_page] - 1
-                    logger.info(f"将第{page_idx + 1}页插入到第{next_page + 1}页之前")
+                    logging.info(f"将第{page_idx + 1}页插入到第{next_page + 1}页之前")
                 else:
                     # 找不到相邻页面，插入到文档末尾
                     insert_point = len(self.official_md)
-                    logger.warning(f"找不到第{page_idx + 1}页的相邻页面，插入到文档末尾")
+                    logging.warning(f"找不到第{page_idx + 1}页的相邻页面，插入到文档末尾")
                 
                 # 生成页码标记
                 page_mark = f'\n\n```page\n第{page_idx + 1}页\n```\n\n'
@@ -630,8 +629,8 @@ class FootnoteProcessor:
                     footnote_marks = []
                     
                     # 添加详细输出
-                    logger.info(f"\n--- 处理未匹配页面: 第{page_idx + 1}页脚注 ---")
-                    logger.info(f"该页共有 {self.page_footnote_counts[page_idx]} 个脚注")
+                    logging.info(f"\n--- 处理未匹配页面: 第{page_idx + 1}页脚注 ---")
+                    logging.info(f"该页共有 {self.page_footnote_counts[page_idx]} 个脚注")
                     
                     # 添加统计信息
                     inserted_count = 0
@@ -640,15 +639,15 @@ class FootnoteProcessor:
                         footnote_marks.append(f'\n```footnote\n{footnote["text"]}\n```\n')
                         self.stats['matched_footnotes'] += 1
                         inserted_count += 1
-                        logger.info(f"[{inserted_count}/{self.page_footnote_counts[page_idx]}] 插入脚注: " + 
+                        logging.info(f"[{inserted_count}/{self.page_footnote_counts[page_idx]}] 插入脚注: " + 
                                    (f"{footnote['text'][:50]}..." if len(footnote['text']) > 50 else f"{footnote['text']}"))
                     
                     # 添加详细日志
                     if inserted_count > 0:
                         success_rate = inserted_count / self.page_footnote_counts[page_idx] * 100 if self.page_footnote_counts[page_idx] > 0 else 0
-                        logger.info(f"未匹配页面(第{page_idx + 1}页)处理完成: 成功插入 {inserted_count}/{self.page_footnote_counts[page_idx]} 个脚注 (成功率: {success_rate:.1f}%)")
+                        logging.info(f"未匹配页面(第{page_idx + 1}页)处理完成: 成功插入 {inserted_count}/{self.page_footnote_counts[page_idx]} 个脚注 (成功率: {success_rate:.1f}%)")
                     else:
-                        logger.warning(f"未匹配页面(第{page_idx + 1}页)未插入任何脚注")
+                        logging.warning(f"未匹配页面(第{page_idx + 1}页)未插入任何脚注")
                     
                     mark_text = ''.join(footnote_marks) + page_mark
                 else:
@@ -664,7 +663,7 @@ class FootnoteProcessor:
         insert_points = []
         
         if not self.insert_by_page:
-            logger.info("\n按关键词匹配插入脚注...")
+            logging.info("\n按关键词匹配插入脚注...")
             processed_footnotes = set()  # 初始化已处理脚注集合
             
             with tqdm(total=len(self.footnotes), desc="插入脚注") as pbar:
@@ -675,7 +674,7 @@ class FootnoteProcessor:
                     
                     footnote_id = f"{footnote['text']}_{footnote['page']}"
                     if footnote_id in processed_footnotes:
-                        logger.info(f"跳过重复脚注 [第{footnote['page'] + 1}页]: {footnote['text']}")
+                        logging.info(f"跳过重复脚注 [第{footnote['page'] + 1}页]: {footnote['text']}")
                         pbar.update(1)
                         continue
                     
@@ -692,10 +691,10 @@ class FootnoteProcessor:
                         processed_footnotes.add(footnote_id)
                         self.stats['matched_footnotes'] += 1
                         # 添加详细日志输出
-                        logger.info(f"[第{footnote['page']+1}页] 成功匹配脚注: " + 
+                        logging.info(f"[第{footnote['page']+1}页] 成功匹配脚注: " + 
                                    (f"{footnote['text'][:50]}..." if len(footnote['text']) > 50 else f"{footnote['text']}"))
                     else:
-                        logger.warning(f"未找到匹配位置 [第{footnote['page'] + 1}页]: {footnote['text']}")
+                        logging.warning(f"未找到匹配位置 [第{footnote['page'] + 1}页]: {footnote['text']}")
                         self.stats['unmatched_footnotes'] += 1
                         # 将未匹配的脚注插入到对应页码标记前
                         page_points = [(p, m) for p, m in insert_points if f'第{footnote["page"] + 1}页' in m]
@@ -703,7 +702,7 @@ class FootnoteProcessor:
                         if page_point is not None:
                             footnote_mark = f'\n```footnote\n{footnote["text"]}\n```\n'
                             insert_points.append((page_point, footnote_mark))
-                            logger.info(f"将未匹配脚注插入到第{footnote['page'] + 1}页页码标记前")
+                            logging.info(f"将未匹配脚注插入到第{footnote['page'] + 1}页页码标记前")
                     
                     pbar.update(1)
         
@@ -723,7 +722,7 @@ class FootnoteProcessor:
         
         # 如果不需要页码标记，移除它们
         if not self.add_page_marks:
-            logger.info("\n移除页码标记...")
+            logging.info("\n移除页码标记...")
             lines = final_text.split('\n')
             filtered_lines = []
             skip_block = False
@@ -750,8 +749,8 @@ class FootnoteProcessor:
     
     def process(self):
         """处理整个文档"""
-        logger.info(f"开始处理文档: {self.official_md_path}")
-        logger.info(f"相似度阈值: {self.similarity_threshold}")
+        logging.info(f"开始处理文档: {self.official_md_path}")
+        logging.info(f"相似度阈值: {self.similarity_threshold}")
         
         # 读取官方MD文件
         with open(self.official_md_path, 'r', encoding='utf-8') as f:
@@ -777,21 +776,21 @@ class FootnoteProcessor:
         final_text = self.build_final_text(all_insert_points)
         
         # 输出统计信息
-        logger.info("\n脚注处理统计:")
-        logger.info(f"总脚注数: {self.stats['total_footnotes']}")
-        logger.info(f"有效脚注数: {self.stats['inserted_footnotes']}")
-        logger.info(f"被排除脚注数: {self.stats['total_footnotes'] - self.stats['inserted_footnotes']}")
+        logging.info("\n脚注处理统计:")
+        logging.info(f"总脚注数: {self.stats['total_footnotes']}")
+        logging.info(f"有效脚注数: {self.stats['inserted_footnotes']}")
+        logging.info(f"被排除脚注数: {self.stats['total_footnotes'] - self.stats['inserted_footnotes']}")
         if self.insert_by_page:
-            logger.info(f"成功插入脚注数: {self.stats['matched_footnotes']}")
+            logging.info(f"成功插入脚注数: {self.stats['matched_footnotes']}")
             success_rate = self.stats['matched_footnotes'] / self.stats['inserted_footnotes'] * 100 if self.stats['inserted_footnotes'] > 0 else 0
-            logger.info(f"插入成功率: {success_rate:.1f}%")
+            logging.info(f"插入成功率: {success_rate:.1f}%")
         else:
-            logger.info(f"成功匹配位置数: {self.stats['matched_footnotes']}")
-            logger.info(f"未匹配位置数: {self.stats['unmatched_footnotes']}")
+            logging.info(f"成功匹配位置数: {self.stats['matched_footnotes']}")
+            logging.info(f"未匹配位置数: {self.stats['unmatched_footnotes']}")
             match_rate = self.stats['matched_footnotes'] / self.stats['inserted_footnotes'] * 100 if self.stats['inserted_footnotes'] > 0 else 0
-            logger.info(f"位置匹配率: {match_rate:.1f}%")
+            logging.info(f"位置匹配率: {match_rate:.1f}%")
         
-        logger.info("\n处理完成")
+        logging.info("\n处理完成")
         
         return final_text, self.stats, self.page_footnote_counts
 

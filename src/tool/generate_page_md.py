@@ -8,14 +8,14 @@ from tqdm import tqdm
 import logging
 from datetime import datetime
 
-from nodes.record.logger_config import setup_logger
+# from nodes.record.logging_config import setup_logging
 
-# 获取logger实例
-config = {
-    'script_name': 'generate_page_md',
-    "console_enabled": False,
-}
-logger, config_info = setup_logger(config)
+# 获取logging实例
+# config = {
+#     'script_name': 'generate_page_md',
+#     "console_enabled": False,
+# }
+# logger, config_info = setup_logging(config)
 
 class TextProcessor:
     @staticmethod
@@ -113,7 +113,7 @@ class PageProcessor:
     
     def preprocess_pages(self):
         """预处理页面信息"""
-        logger.info("预处理页面信息...")
+        logging.info("预处理页面信息...")
         total_pages = len(self.json_data['pdf_info'])
         
         # 初始化变量
@@ -157,7 +157,7 @@ class PageProcessor:
                                 last_block = block
                                 last_text = block_text
                                 max_y = block_bottom
-                                logger.info(f"更新第{page_idx + 1}页的最后块: 类型={block['type']}, y={max_y}")
+                                logging.info(f"更新第{page_idx + 1}页的最后块: 类型={block['type']}, y={max_y}")
                     
                     if last_block:
                         self.page_contexts[page_idx] = {
@@ -165,14 +165,14 @@ class PageProcessor:
                             'bbox': last_block['bbox'],
                             'type': last_block['type']
                         }
-                        logger.info(f"找到第{page_idx + 1}页的最后块: 类型={last_block['type']}, 文本={last_text[:50]}...")
+                        logging.info(f"找到第{page_idx + 1}页的最后块: 类型={last_block['type']}, 文本={last_text[:50]}...")
                 pbar.update(1)
         
         return total_pages, unmatched_pages, matched_points
     
     def process_pages(self, total_pages, unmatched_pages, matched_points):
         """处理页面插入点"""
-        logger.info("\n查找页码标记插入点...")
+        logging.info("\n查找页码标记插入点...")
         
         # 收集所有插入点
         insert_points = []  # [(position, mark_text), ...]
@@ -212,21 +212,21 @@ class PageProcessor:
                     insert_point = self.text_processor.find_insertion_point(self.official_md, block_text)
                     if insert_point != -1:
                         used_block = block_text
-                        logger.info(f"在第{current_page + 1}页使用最后一个文本块匹配成功")
+                        logging.info(f"在第{current_page + 1}页使用最后一个文本块匹配成功")
                     # 如果最后一个文本块匹配失败，尝试倒数第二个
                     elif len(page_blocks) > 1:
                         block_text, _ = page_blocks[1]
                         insert_point = self.text_processor.find_insertion_point(self.official_md, block_text)
                         if insert_point != -1:
                             used_block = block_text
-                            logger.info(f"在第{current_page + 1}页使用倒数第二个文本块匹配成功")
+                            logging.info(f"在第{current_page + 1}页使用倒数第二个文本块匹配成功")
                         else:
                             # 如果倒数第二个也失败，继续尝试其他块
                             for i, (block_text, _) in enumerate(page_blocks[2:], 3):
                                 insert_point = self.text_processor.find_insertion_point(self.official_md, block_text)
                                 if insert_point != -1:
                                     used_block = block_text
-                                    logger.info(f"在第{current_page + 1}页使用第{i}个文本块匹配成功")
+                                    logging.info(f"在第{current_page + 1}页使用第{i}个文本块匹配成功")
                                     break
                 
                 if insert_point != -1:
@@ -235,11 +235,11 @@ class PageProcessor:
                     insert_points.append((insert_point, page_mark))
                     processed_pages.add(current_page)
                     matched_points[current_page] = insert_point  # 记录匹配页面的插入点
-                    logger.info(f"找到第{current_page + 1}页的插入点: {insert_point}, 使用文本: {used_block[:50]}...")
+                    logging.info(f"找到第{current_page + 1}页的插入点: {insert_point}, 使用文本: {used_block[:50]}...")
                 else:
                     # 记录未匹配的页面
                     unmatched_pages.add(current_page)
-                    logger.warning(f"无法找到第{current_page + 1}页的匹配位置")
+                    logging.warning(f"无法找到第{current_page + 1}页的匹配位置")
             
             current_page += 1
         
@@ -250,7 +250,7 @@ class PageProcessor:
         insert_points = []
         
         if unmatched_pages:
-            logger.info("\n处理未匹配页面...")
+            logging.info("\n处理未匹配页面...")
             unmatched_pages = sorted(unmatched_pages, reverse=True)  # 降序排序
             
             for page_idx in unmatched_pages:
@@ -275,19 +275,19 @@ class PageProcessor:
                     prev_point = matched_points[prev_page]
                     next_point = matched_points[next_page]
                     insert_point = prev_point + (next_point - prev_point) // 2
-                    logger.info(f"将第{page_idx + 1}页插入到第{prev_page + 1}页和第{next_page + 1}页之间")
+                    logging.info(f"将第{page_idx + 1}页插入到第{prev_page + 1}页和第{next_page + 1}页之间")
                 elif prev_page is not None:
                     # 在前一页之后插入
                     insert_point = matched_points[prev_page] + 1
-                    logger.info(f"将第{page_idx + 1}页插入到第{prev_page + 1}页之后")
+                    logging.info(f"将第{page_idx + 1}页插入到第{prev_page + 1}页之后")
                 elif next_page is not None:
                     # 在后一页之前插入
                     insert_point = matched_points[next_page] - 1
-                    logger.info(f"将第{page_idx + 1}页插入到第{next_page + 1}页之前")
+                    logging.info(f"将第{page_idx + 1}页插入到第{next_page + 1}页之前")
                 else:
                     # 找不到相邻页面，插入到文档末尾
                     insert_point = len(self.official_md)
-                    logger.warning(f"找不到第{page_idx + 1}页的相邻页面，插入到文档末尾")
+                    logging.warning(f"找不到第{page_idx + 1}页的相邻页面，插入到文档末尾")
                 
                 # 生成页码标记
                 page_mark = f'\n\n```page\n第{page_idx + 1}页\n```\n\n'
@@ -312,7 +312,7 @@ class PageProcessor:
     
     def process(self):
         """处理整个文档"""
-        logger.info(f"开始处理文档: {self.official_md_path}")
+        logging.info(f"开始处理文档: {self.official_md_path}")
         
         # 读取官方MD文件
         with open(self.official_md_path, 'r', encoding='utf-8') as f:
@@ -331,7 +331,7 @@ class PageProcessor:
         all_insert_points = page_insert_points + unmatched_insert_points
         final_text = self.build_final_text(all_insert_points)
         
-        logger.info("\n处理完成")
+        logging.info("\n处理完成")
         
         return final_text
 
