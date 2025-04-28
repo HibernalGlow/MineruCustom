@@ -135,10 +135,17 @@ def convert_to_markdown(json_file_path):
         pdf_info_dict = json_data['pdf_info']
         
         # 转换为Markdown
+        images_base_path_str = json_file_path.parent / "images"
+        images_base_path = Path(images_base_path_str)
+        resolved_path = images_base_path.resolve(strict=False) # 处理相对路径
+        # 将路径转换为 file:/// URL     
+        images_base_url = resolved_path.as_uri()
+        console.print(f"\n[bold green]图片基础路径:[/bold green] [cyan]{images_base_url}[/cyan]")
+        # 转换为Markdown
         with console.status("[bold green]转换为Markdown...[/bold green]"):
             markdown_content = ocr_mk_mm_markdown_with_para_and_pagination(
                 pdf_info_dict,
-                img_buket_path=str(json_file_path.parent)
+                img_buket_path=images_base_url # 使用 file:/// URL 作为基础路径
             )
         
         # 生成输出文件路径

@@ -50,10 +50,12 @@ def main():
         
         # --- 确定图片基础路径 ---
         # 图片位于 middle.json 文件所在目录下的 images 子目录中
-        images_base_path = json_file.parent / "images"
-        # 将路径转换为 file:/// URL
-        images_base_url = images_base_path.as_uri()
-        
+        images_base_path_str = json_file.parent / "images"
+        images_base_path = Path(images_base_path_str)
+        resolved_path = images_base_path.resolve(strict=False) # 处理相对路径
+        # 将路径转换为 file:/// URL     
+        images_base_url = resolved_path.as_uri()
+        console.print(f"\n[bold green]图片基础路径:[/bold green] [cyan]{images_base_url}[/cyan]")
         # 转换为Markdown
         with console.status("[bold green]转换为Markdown...[/bold green]"):
             markdown_content = ocr_mk_mm_markdown_with_para_and_pagination(
