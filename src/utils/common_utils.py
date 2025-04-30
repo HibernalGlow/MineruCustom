@@ -30,12 +30,20 @@ def find_middle_json_files(directory='.'):
     
     return sorted_json_files
 
-def save_markdown(markdown_content, output_path):
-    """保存Markdown内容到文件"""
+def save_markdown(markdown_content, output_path, include_page_numbers=False):
+    """
+    保存Markdown内容到文件
+    
+    Args:
+        markdown_content: Markdown内容列表，每个元素为一个包含页面内容的字典
+        output_path: 输出文件路径
+        include_page_numbers: 是否包含页码标记，默认为False
+    """
     with open(output_path, 'w', encoding='utf-8') as f:
         for page in markdown_content:
-            # 添加页码标记
-            f.write(f'```page\n第{page["page_no"] + 1}页\n```\n\n')
+            # 添加页码标记（如果启用）
+            if include_page_numbers:
+                f.write(f'```page\n第{page["page_no"] + 1}页\n```\n\n')
             # 写入页面内容
             f.write(page['md_content'])
             # 添加分隔符

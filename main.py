@@ -153,7 +153,7 @@ def convert_to_markdown(json_file_path):
         
         # 保存Markdown文件
         with console.status("[bold green]保存Markdown文件...[/bold green]"):
-            save_markdown(markdown_content, output_path)
+            save_markdown(markdown_content, output_path, include_page_numbers=False)
         
         console.print(f"\n[bold green]✓ Markdown生成完成！[/bold green]")
         console.print(f"输出文件：[cyan]{output_path}[/cyan]")
@@ -256,8 +256,8 @@ def convert_to_para_block_format(discarded_block):
                 text_content = ' '.join(contents)
         
         # 如果还是没有找到文本内容，使用默认文本
-        if not text_content:
-            text_content = "(原废弃块内容)"
+        # if not text_content:
+        #     text_content = "(原废弃块内容)"
         
         # 创建一个新的符合 para_blocks 格式要求的块
         new_block = {
