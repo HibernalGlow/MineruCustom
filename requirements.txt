@@ -1,3 +1,0 @@
-# Markdown格式化工具依赖
-magic_pdf
-rich>=10.0.0

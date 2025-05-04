@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "minerucustom"
+version = "0.1.0"
+description = "Middle.json 处理与 Markdown 转换工具"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [
+    {name = "Your Name", email = "your.email@example.com"}
+]
+keywords = ["markdown", "converter", "pdf", "json"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+]
+dependencies = [
+    "rich>=10.0.0",
+    "magic-pdf",  # 请确保这个依赖是正确的
+]
+
+[project.urls]
+"Homepage" = "https://github.com/HibernalGlow/MineruCustom"
+"Bug Tracker" = "https://github.com/HibernalGlow/MineruCustom/issues"
+
+[project.scripts]
+minerucustom = "minerucustom.__main__:main"
+
+[tool.setuptools]
+packages = ["minerucustom", "minerucustom.core", "minerucustom.utils"]
