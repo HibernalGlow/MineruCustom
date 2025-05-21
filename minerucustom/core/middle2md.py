@@ -4,7 +4,7 @@ from rich.console import Console
 from rich.prompt import Prompt
 from magic_pdf.dict2md.ocr_mkcontent import ocr_mk_mm_markdown_with_para_and_pagination # layout/middle.json转换为markdown关键函数
 # 从 utils 导入共用函数
-from minerucustom.utils.common_utils import find_middle_json_files, save_markdown
+from .utils.common_utils import find_middle_json_files, save_markdown
 
 def main():
     console = Console()

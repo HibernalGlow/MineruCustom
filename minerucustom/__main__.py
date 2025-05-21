@@ -10,9 +10,9 @@ from rich.syntax import Syntax
 from rich.markup import escape
 
 # 导入其他模块的功能
-from minerucustom.core.reprocess_discarded import reprocess_middle_interactive
+from .core.reprocess_discarded import reprocess_middle_interactive
 from magic_pdf.dict2md.ocr_mkcontent import ocr_mk_mm_markdown_with_para_and_pagination
-from minerucustom.utils.common_utils import find_middle_json_files, save_markdown
+from .utils.common_utils import find_middle_json_files, save_markdown
 
 # 创建Rich控制台对象
 console = Console()

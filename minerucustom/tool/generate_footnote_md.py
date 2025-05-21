@@ -9,7 +9,7 @@ import logging
 from datetime import datetime
 
 # from nodes.record.logging_config import setup_logging
-from minerucustom.utils.common_utils import find_middle_json_files, save_markdown
+from .utils.common_utils import find_middle_json_files, save_markdown
 
 # 获取logging实例
 # config = {

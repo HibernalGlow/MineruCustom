@@ -31,6 +31,6 @@ dependencies = [
 
 [project.scripts]
 minerucustom = "minerucustom.__main__:main"
-
+mucu = "minerucustom.__main__:main"
 [tool.setuptools]
 packages = ["minerucustom", "minerucustom.core", "minerucustom.utils"]
